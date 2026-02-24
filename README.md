@@ -27,7 +27,7 @@ Research library growth tracker for Zotero. It visualizes daily added items and 
 
 ## Installation
 
-1. Download the latest `.xpi` from GitHub Releases.
+1. Download the latest [career-tracker.xpi](https://github.com/etShaw-zh/zotero-career-tracker/releases) from GitHub Releases.
 2. In Zotero: `Tools` → `Add-ons` → gear icon → `Install Add-on From File...`
 3. Select the `.xpi` and restart Zotero if required.
 
