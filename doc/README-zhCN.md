@@ -27,7 +27,7 @@
 
 ## 安装
 
-1. 从 GitHub Releases 下载最新的 `.xpi`
+1. 从 GitHub Releases 下载最新的 [career-tracker.xpi](https://github.com/etShaw-zh/zotero-career-tracker/releases)
 2. Zotero → `工具` → `插件` → 齿轮 → `Install Add-on From File...`
 3. 选择 `.xpi` 并按提示重启
 
