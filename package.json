@@ -1,7 +1,7 @@
 {
   "name": "zotero-career-tracker",
   "type": "module",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Track your research career with Zotero library statistics",
   "config": {
     "addonName": "Career Tracker",
