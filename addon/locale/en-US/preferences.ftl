@@ -1,5 +1,5 @@
 pref-title = Career Tracker
-pref-help = { $name } Build { $version } { $time }
+pref-help = { $name } Build { $version } { $time } by { $author }
 pref-focal-tags-label = Focal Tags
 pref-tag-placeholder = Enter tag names separated by semicolons, e.g. tag1; tag2; tag3
 pref-refresh-btn = Refresh

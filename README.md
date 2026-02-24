@@ -1,3 +1,5 @@
+English | [简体中文](./doc/README-zhCN.md)
+
 # Zotero Career Tracker
 
 <p align="left">

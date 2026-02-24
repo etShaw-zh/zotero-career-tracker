@@ -1,5 +1,5 @@
 pref-title = 科研轨迹追踪
-pref-help = { $name } Build { $version } { $time }
+pref-help = { $name } Build { $version } { $time } by { $author }
 pref-focal-tags-label = 关注标签
 pref-tag-placeholder = 用分号分隔标签，例如：tag1; tag2; tag3
 pref-refresh-btn = 刷新

@@ -18,20 +18,9 @@ export async function getStatistics(tagIds: number[] = []): Promise<StatisticsDa
   const userLibraryID = Zotero.Libraries.userLibraryID;
 
   try {
-    const libraryCounts = await Zotero.DB.queryAsync(
-      "SELECT libraryID, COUNT(*) AS count FROM items GROUP BY libraryID",
-    );
-    const librarySummary = (libraryCounts || []).map((row: any) => ({
-      libraryID: row.libraryID,
-      count: row.count,
-    }));
-    ztoolkit.log("library item counts:", librarySummary);
-    const tagCount = await Zotero.DB.valueQueryAsync(
-      "SELECT COUNT(*) FROM tags",
-    );
-    ztoolkit.log("total tags:", tagCount);
-  } catch (e) {
-    ztoolkit.log("Count query error:", e);
+    await Zotero.DB.valueQueryAsync("SELECT COUNT(*) FROM tags");
+  } catch {
+    // ignore
   }
 
   const libraryID = userLibraryID;
@@ -69,84 +58,70 @@ export async function getStatistics(tagIds: number[] = []): Promise<StatisticsDa
     : [libraryID];
   let results: any[] = [];
   try {
-    ztoolkit.log("userLibraryID:", userLibraryID);
-    ztoolkit.log("sql:", sql);
-    ztoolkit.log("params:", params);
-    results = await Zotero.DB.queryAsync(sql, params) as any[] || [];
-    ztoolkit.log("Statistics query results:", results);
-  } catch (e) {
-    ztoolkit.log("Statistics query error:", e);
-  }
-  if (!results) results = [];
+    const baseWhere = `
+      FROM items i
+      JOIN itemTypes it ON i.itemTypeID = it.itemTypeID
+      LEFT JOIN deletedItems di ON di.itemID = i.itemID
+      WHERE
+        it.typeName IN ('journalArticle','book','thesis','conferencePaper','patent','preprint')
+        AND i.libraryID = ?
+        AND di.itemID IS NULL
+    `;
+    const daySql = `
+      SELECT ${dayExpr} AS day
+      ${baseWhere}
+      GROUP BY ${dayExpr}
+      ORDER BY day ASC;
+    `;
+    const addedSql = `
+      SELECT COUNT(DISTINCT i.itemID) AS added_count
+      ${baseWhere}
+      GROUP BY ${dayExpr}
+      ORDER BY ${dayExpr} ASC;
+    `;
+    const focalSql = tagIds.length > 0
+      ? `
+          SELECT COUNT(DISTINCT CASE WHEN itg.itemID IS NOT NULL THEN i.itemID END) AS focal_added_count
+          FROM items i
+          JOIN itemTypes it ON i.itemTypeID = it.itemTypeID
+          LEFT JOIN itemTags itg ON itg.itemID = i.itemID AND itg.tagID IN (${placeholders})
+          LEFT JOIN deletedItems di ON di.itemID = i.itemID
+          WHERE
+            it.typeName IN ('journalArticle','book','thesis','conferencePaper','patent','preprint')
+            AND i.libraryID = ?
+            AND di.itemID IS NULL
+          GROUP BY ${dayExpr}
+          ORDER BY ${dayExpr} ASC;
+        `
+      : "";
 
-  if (results.length === 0) {
-    try {
-      const baseWhere = `
-        FROM items i
-        JOIN itemTypes it ON i.itemTypeID = it.itemTypeID
-        LEFT JOIN deletedItems di ON di.itemID = i.itemID
-        WHERE
-          it.typeName IN ('journalArticle','book','thesis','conferencePaper','patent','preprint')
-          AND i.libraryID = ?
-          AND di.itemID IS NULL
-      `;
-      const daySql = `
-        SELECT ${dayExpr} AS day
-        ${baseWhere}
-        GROUP BY ${dayExpr}
-        ORDER BY day ASC;
-      `;
-      const addedSql = `
-        SELECT COUNT(DISTINCT i.itemID) AS added_count
-        ${baseWhere}
-        GROUP BY ${dayExpr}
-        ORDER BY ${dayExpr} ASC;
-      `;
-      const focalSql = tagIds.length > 0
-        ? `
-            SELECT COUNT(DISTINCT CASE WHEN itg.itemID IS NOT NULL THEN i.itemID END) AS focal_added_count
-            FROM items i
-            JOIN itemTypes it ON i.itemTypeID = it.itemTypeID
-            LEFT JOIN itemTags itg ON itg.itemID = i.itemID AND itg.tagID IN (${placeholders})
-            LEFT JOIN deletedItems di ON di.itemID = i.itemID
-            WHERE
-              it.typeName IN ('journalArticle','book','thesis','conferencePaper','patent','preprint')
-              AND i.libraryID = ?
-              AND di.itemID IS NULL
-            GROUP BY ${dayExpr}
-            ORDER BY ${dayExpr} ASC;
-          `
-        : "";
-
-      const dayParams = [libraryID];
-      const days = (await Zotero.DB.columnQueryAsync(daySql, dayParams)) as
-        | string[]
-        | null;
-      const added = (await Zotero.DB.columnQueryAsync(addedSql, dayParams)) as
+    const dayParams = [libraryID];
+    const days = (await Zotero.DB.columnQueryAsync(daySql, dayParams)) as
+      | string[]
+      | null;
+    const added = (await Zotero.DB.columnQueryAsync(addedSql, dayParams)) as
+      | number[]
+      | null;
+    let focal: number[] = [];
+    if (tagIds.length > 0) {
+      const focalParams = [...tagIds, libraryID];
+      const focalCol = (await Zotero.DB.columnQueryAsync(focalSql, focalParams)) as
         | number[]
         | null;
-      let focal: number[] = [];
-      if (tagIds.length > 0) {
-        const focalParams = [...tagIds, libraryID];
-        const focalCol = (await Zotero.DB.columnQueryAsync(focalSql, focalParams)) as
-          | number[]
-          | null;
-        focal = focalCol ?? [];
-      } else if (days) {
-        focal = days.map(() => 0);
-      }
-
-      if (days && added && days.length === added.length) {
-        results = days.map((day, i) => ({
-          day,
-          added_count: added[i] ?? 0,
-          focal_added_count: focal[i] ?? 0,
-        }));
-        ztoolkit.log("Fallback columnQuery results:", results);
-      }
-    } catch (e) {
-      ztoolkit.log("Fallback columnQuery error:", e);
+      focal = focalCol ?? [];
+    } else if (days) {
+      focal = days.map(() => 0);
     }
+
+    if (days && added && days.length === added.length) {
+      results = days.map((day, i) => ({
+        day,
+        added_count: added[i] ?? 0,
+        focal_added_count: focal[i] ?? 0,
+      }));
+    }
+  } catch {
+    results = [];
   }
 
   if (!results || results.length === 0) {
@@ -203,39 +178,5 @@ export async function getStatistics(tagIds: number[] = []): Promise<StatisticsDa
     focalCount: lastRow.focalCumulativeCount,
     startDate: dailyData[0].day,
     endDate: lastRow.day,
-  };
-}
-
-export function formatDate(dateStr: string): string {
-  if (!dateStr) return "";
-  const date = new Date(dateStr);
-  return date.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
-}
-
-export function getChartData(statistics: StatisticsData) {
-  const labels = statistics.dailyData.map(d => d.day);
-  const allData = statistics.dailyData.map(d => d.cumulativeCount);
-  const focalData = statistics.dailyData.map(d => d.focalCumulativeCount);
-
-  return {
-    labels,
-    datasets: [
-      {
-        label: "All Items",
-        data: allData,
-        borderColor: "#DD8452",
-        backgroundColor: "rgba(221, 132, 82, 0.1)",
-        fill: true,
-        tension: 0.3,
-      },
-      {
-        label: "Focal Items",
-        data: focalData,
-        borderColor: "#4C72B0",
-        backgroundColor: "rgba(76, 114, 176, 0.1)",
-        fill: true,
-        tension: 0.3,
-      },
-    ],
   };
 }

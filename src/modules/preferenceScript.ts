@@ -1,4 +1,4 @@
-import { config } from "../../package.json";
+import { config, author } from "../../package.json";
 import { getString } from "../utils/locale";
 import { getStatistics, StatisticsData } from "./statistics";
 
@@ -25,24 +25,11 @@ async function getTagIdsByNames(tagNames: string[]): Promise<number[]> {
     SELECT tagID FROM tags
     WHERE name IN (${placeholders})
   `;
-  ztoolkit.log("getTagIdsByNames SQL:", sql, tagNames, placeholders);
-  
-  let results: any[] = [];
-  try {
-    results = await Zotero.DB.queryAsync(sql, tagNames) as any[] || [];
-  } catch (e) {
-    ztoolkit.log("Query error:", e);
-  }
-  if (!results) results = [];
-  if (results.length > 0) {
-    return results.map((row: any) => row.tagID);
-  }
   try {
     const column = await Zotero.DB.columnQueryAsync(sql, tagNames) as number[] | null;
-    ztoolkit.log("columnQueryAsync tagIDs:", column);
     if (column && column.length > 0) return column;
-  } catch (e) {
-    ztoolkit.log("columnQueryAsync error:", e);
+  } catch {
+    // ignore
   }
   return [];
 }
@@ -73,16 +60,20 @@ async function updatePrefsUI(): Promise<void> {
   const footerNote = doc.getElementById(`${config.addonRef}-chart-footer-note`);
   const shareStatus = doc.getElementById(`${config.addonRef}-share-status`);
 
-  ztoolkit.log("Elements found:", { tagInput, refreshBtn, summaryContainer, chartAllCanvas, chartFocalCanvas, shareBtn, footerNote, shareStatus });
-
   if (!summaryContainer || !chartAllCanvas || !chartFocalCanvas || !tagInput || !refreshBtn || !shareBtn || !footerNote || !shareStatus) {
-    ztoolkit.log("Container elements not found");
     return;
   }
 
+  const buildLabel = doc.getElementById(`${config.addonRef}-build-info`);
+  if (buildLabel) {
+    const name = buildLabel.getAttribute("data-name") || config.addonName;
+    const version = buildLabel.getAttribute("data-version") || "";
+    const time = buildLabel.getAttribute("data-time") || "";
+    const authorName = "Jianjun Xiao";
+    (buildLabel as HTMLElement).textContent = `${name} Build ${version} ${time} by ${authorName}`;
+  }
+
   const savedTagNames = getSavedTagNames();
-  ztoolkit.log("Saved tag names:", savedTagNames);
-  
   const inputEl = tagInput as HTMLInputElement;
   if (inputEl.value === "" && savedTagNames !== "") {
     inputEl.value = savedTagNames;
@@ -90,15 +81,11 @@ async function updatePrefsUI(): Promise<void> {
 
   const btnEl = refreshBtn as HTMLButtonElement;
   btnEl.addEventListener("click", async () => {
-    ztoolkit.log("Refresh button clicked");
     const tagNamesStr = inputEl.value.trim();
     saveTagNames(tagNamesStr);
     
     const tagNames = tagNamesStr.split(";").map(s => s.trim()).filter(s => s.length > 0);
-    ztoolkit.log("Tag names:", tagNames);
-    
     const tagIds = await getTagIdsByNames(tagNames);
-    ztoolkit.log("Tag IDs:", tagIds);
     
     await refreshChart(
       summaryContainer as HTMLElement,
@@ -125,16 +112,20 @@ async function updatePrefsUI(): Promise<void> {
     statusEl.textContent = "";
     const tagNamesStr = inputEl.value.trim();
     const tagNames = tagNamesStr.split(";").map(s => s.trim()).filter(s => s.length > 0);
-    const tagIds = await getTagIdsByNames(tagNames);
-    const statistics = await getStatistics(tagIds);
-    const ok = await exportShareImage(
-      addon.data.prefs?.window as Window,
-      chartAllCanvas as HTMLCanvasElement,
-      chartFocalCanvas as HTMLCanvasElement,
-      statistics,
-      footerNote as HTMLElement,
-    );
-    statusEl.textContent = ok ? getString("ui-share-success") : getString("ui-share-failed");
+    try {
+      const tagIds = await getTagIdsByNames(tagNames);
+      const statistics = await getStatistics(tagIds);
+      const ok = await exportShareImage(
+        addon.data.prefs?.window as Window,
+        chartAllCanvas as HTMLCanvasElement,
+        chartFocalCanvas as HTMLCanvasElement,
+        statistics,
+        footerNote as HTMLElement,
+      );
+      statusEl.textContent = ok ? getString("ui-share-success") : getString("ui-share-failed");
+    } catch {
+      statusEl.textContent = getString("ui-share-failed");
+    }
   });
 }
 
@@ -149,9 +140,14 @@ async function refreshChart(
 
   try {
     statistics = await getStatistics(tagIds);
-  } catch (error) {
-    ztoolkit.log("Failed to get statistics:", error);
-    summaryContainer.textContent = `Failed to load statistics: ${error}`;
+  } catch {
+    summaryContainer.textContent = getString("ui-no-data");
+    if (summaryContainer.ownerDocument) {
+      const statusEl = summaryContainer.ownerDocument.getElementById(
+        `${config.addonRef}-share-status`,
+      );
+      if (statusEl) statusEl.textContent = getString("ui-share-failed");
+    }
     return;
   }
 
@@ -351,7 +347,6 @@ async function copyImageToClipboard(win: Window, dataURL: string): Promise<boole
       throw new Error("Clipboard API not available");
     }
   } catch (e) {
-    ztoolkit.log("Clipboard copy error:", e);
     return false;
   }
 }
@@ -439,7 +434,6 @@ async function getPublicationMarkers(): Promise<PublicationMarkers> {
     dayCounts.set(day, (dayCounts.get(day) || 0) + 1);
   }
   const days = Array.from(dayCounts.keys()).sort();
-  ztoolkit.log("publication days sample:", days.slice(0, 5), days.slice(-5));
   const cumulativeByDay = new Map<string, number>();
   let cum = 0;
   for (const day of days) {

@@ -1,3 +1,5 @@
+[English](./../README.md) | 简体中文
+
 # Zotero 科研轨迹追踪
 
 <p align="left">
