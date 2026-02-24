@@ -15,26 +15,31 @@ English | [简体中文](./doc/README-zhCN.md)
 Research library growth tracker for Zotero. It visualizes daily added items and cumulative growth, highlights your “FOCAL” tagged items, and marks your publications for easy sharing.
 
 ## Features
+
 - Daily added bars + cumulative line for All items and Focal items
 - Publication markers (based on Zotero “My Publications”)
 - Tag-based focal tracking
 - One‑click image export to clipboard for sharing
 
 ## Screenshots
+
 ![Overview](./doc/overview.png)
 
 ## Installation
+
 1. Download the latest `.xpi` from GitHub Releases.
 2. In Zotero: `Tools` → `Add-ons` → gear icon → `Install Add-on From File...`
 3. Select the `.xpi` and restart Zotero if required.
 
 ## Usage
+
 1. Open `Edit` → `Preferences` → `Career Tracker`.
 2. Enter focal tag names separated by semicolons (e.g. `★;⭐;🌟`).
 3. Click `Refresh` to update charts.
 4. Click `Share image` to copy the chart image and paste into social apps.
 
 ## Export / Share
+
 - The share button copies a composed image to clipboard, including:
   - Title and date range
   - All/Focal charts
@@ -42,11 +47,14 @@ Research library growth tracker for Zotero. It visualizes daily added items and 
 - Paste directly into apps like WeChat Moments or Xiaohongshu.
 
 ## Notes
+
 - “FOCAL” represents tagged items you consider high‑value or important.
 - Publication markers use Zotero’s **My Publications** items with a `date` field.
 
 ## Acknowledgements
+
 - Built on [zotero-plugin-template](https://github.com/windingwind/zotero-plugin-template).
 
 ## License
+
 AGPL-3.0-or-later

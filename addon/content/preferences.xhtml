@@ -4,34 +4,81 @@
 <groupbox
   onload="Zotero.__addonInstance__.hooks.onPrefsEvent('load', { window })"
 >
-  <html:div style="height: 4px;"></html:div>
-  
-  <html:div id="__addonRef__-stats-container" style="margin: 10px 0;">
-    <html:div style="margin-bottom: 15px; padding: 10px; background: #f5f5f5; border-radius: 4px;">
-      <html:label style="display: block; margin-bottom: 5px; font-weight: bold;" data-l10n-id="pref-focal-tags-label"></html:label>
-      <html:div style="display: flex; gap: 10px; align-items: center;">
-        <html:input type="text" id="__addonRef__-tag-input" style="flex: 1; padding: 5px;" data-l10n-id="pref-tag-placeholder" data-l10n-attrs="placeholder" />
-        <html:button id="__addonRef__-refresh-btn" style="padding: 5px 10px;" data-l10n-id="pref-refresh-btn"></html:button>
+  <html:div style="height: 4px"></html:div>
+
+  <html:div id="__addonRef__-stats-container" style="margin: 10px 0">
+    <html:div
+      style="
+        margin-bottom: 15px;
+        padding: 10px;
+        background: #f5f5f5;
+        border-radius: 4px;
+      "
+    >
+      <html:label
+        style="display: block; margin-bottom: 5px; font-weight: bold"
+        data-l10n-id="pref-focal-tags-label"
+      ></html:label>
+      <html:div style="display: flex; gap: 10px; align-items: center">
+        <html:input
+          type="text"
+          id="__addonRef__-tag-input"
+          style="flex: 1; padding: 5px"
+          data-l10n-id="pref-tag-placeholder"
+          data-l10n-attrs="placeholder"
+        />
+        <html:button
+          id="__addonRef__-refresh-btn"
+          style="padding: 5px 10px"
+          data-l10n-id="pref-refresh-btn"
+        ></html:button>
       </html:div>
-      <html:div style="margin-top: 5px; font-size: 11px; color: #666;" data-l10n-id="pref-tag-help"></html:div>
+      <html:div
+        style="margin-top: 5px; font-size: 11px; color: #666"
+        data-l10n-id="pref-tag-help"
+      ></html:div>
     </html:div>
-    
-    <html:div id="__addonRef__-stats-summary" style="display: flex; gap: 20px; margin-bottom: 15px;"></html:div>
-    <html:div style="display: grid; grid-template-columns: 1fr; gap: 14px;">
-      <html:div style="border: 1px solid #ccc; border-radius: 4px; padding: 10px;">
-        <html:canvas id="__addonRef__-chart-all" style="width: 100%; height: 280px;"></html:canvas>
+
+    <html:div
+      id="__addonRef__-stats-summary"
+      style="display: flex; gap: 20px; margin-bottom: 15px"
+    ></html:div>
+    <html:div style="display: grid; grid-template-columns: 1fr; gap: 14px">
+      <html:div
+        style="border: 1px solid #ccc; border-radius: 4px; padding: 10px"
+      >
+        <html:canvas
+          id="__addonRef__-chart-all"
+          style="width: 100%; height: 280px"
+        ></html:canvas>
       </html:div>
-      <html:div style="border: 1px solid #ccc; border-radius: 4px; padding: 10px;">
-        <html:canvas id="__addonRef__-chart-focal" style="width: 100%; height: 280px;"></html:canvas>
+      <html:div
+        style="border: 1px solid #ccc; border-radius: 4px; padding: 10px"
+      >
+        <html:canvas
+          id="__addonRef__-chart-focal"
+          style="width: 100%; height: 280px"
+        ></html:canvas>
       </html:div>
     </html:div>
   </html:div>
-  <html:div id="__addonRef__-chart-footer-note" style="margin-top: 10px; font-size: 11px; color: #666;" data-l10n-id="pref-chart-footer-note"></html:div>
-  <html:div style="margin-top: 10px;">
-    <html:button id="__addonRef__-share-btn" style="padding: 6px 12px;" data-l10n-id="pref-share-btn"></html:button>
-    <html:span id="__addonRef__-share-status" style="margin-left: 10px; font-size: 11px; color: #666;"></html:span>
+  <html:div
+    id="__addonRef__-chart-footer-note"
+    style="margin-top: 10px; font-size: 11px; color: #666"
+    data-l10n-id="pref-chart-footer-note"
+  ></html:div>
+  <html:div style="margin-top: 10px">
+    <html:button
+      id="__addonRef__-share-btn"
+      style="padding: 6px 12px"
+      data-l10n-id="pref-share-btn"
+    ></html:button>
+    <html:span
+      id="__addonRef__-share-status"
+      style="margin-left: 10px; font-size: 11px; color: #666"
+    ></html:span>
   </html:div>
-  
+
   <vbox>
     <html:label
       id="__addonRef__-build-info"

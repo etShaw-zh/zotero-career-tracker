@@ -19,14 +19,16 @@ export async function registerPrefsScripts(_window: Window) {
 
 async function getTagIdsByNames(tagNames: string[]): Promise<number[]> {
   if (tagNames.length === 0) return [];
-  
+
   const placeholders = tagNames.map(() => "?").join(",");
   const sql = `
     SELECT tagID FROM tags
     WHERE name IN (${placeholders})
   `;
   try {
-    const column = await Zotero.DB.columnQueryAsync(sql, tagNames) as number[] | null;
+    const column = (await Zotero.DB.columnQueryAsync(sql, tagNames)) as
+      | number[]
+      | null;
     if (column && column.length > 0) return column;
   } catch {
     // ignore
@@ -53,14 +55,25 @@ async function updatePrefsUI(): Promise<void> {
   const doc = addon.data.prefs.window.document;
   const tagInput = doc.getElementById(`${config.addonRef}-tag-input`);
   const refreshBtn = doc.getElementById(`${config.addonRef}-refresh-btn`);
-  const summaryContainer = doc.getElementById(`${config.addonRef}-stats-summary`);
+  const summaryContainer = doc.getElementById(
+    `${config.addonRef}-stats-summary`,
+  );
   const chartAllCanvas = doc.getElementById(`${config.addonRef}-chart-all`);
   const chartFocalCanvas = doc.getElementById(`${config.addonRef}-chart-focal`);
   const shareBtn = doc.getElementById(`${config.addonRef}-share-btn`);
   const footerNote = doc.getElementById(`${config.addonRef}-chart-footer-note`);
   const shareStatus = doc.getElementById(`${config.addonRef}-share-status`);
 
-  if (!summaryContainer || !chartAllCanvas || !chartFocalCanvas || !tagInput || !refreshBtn || !shareBtn || !footerNote || !shareStatus) {
+  if (
+    !summaryContainer ||
+    !chartAllCanvas ||
+    !chartFocalCanvas ||
+    !tagInput ||
+    !refreshBtn ||
+    !shareBtn ||
+    !footerNote ||
+    !shareStatus
+  ) {
     return;
   }
 
@@ -70,7 +83,8 @@ async function updatePrefsUI(): Promise<void> {
     const version = buildLabel.getAttribute("data-version") || "";
     const time = buildLabel.getAttribute("data-time") || "";
     const authorName = "Jianjun Xiao";
-    (buildLabel as HTMLElement).textContent = `${name} Build ${version} ${time} by ${authorName}`;
+    (buildLabel as HTMLElement).textContent =
+      `${name} Build ${version} ${time} by ${authorName}`;
   }
 
   const savedTagNames = getSavedTagNames();
@@ -83,10 +97,13 @@ async function updatePrefsUI(): Promise<void> {
   btnEl.addEventListener("click", async () => {
     const tagNamesStr = inputEl.value.trim();
     saveTagNames(tagNamesStr);
-    
-    const tagNames = tagNamesStr.split(";").map(s => s.trim()).filter(s => s.length > 0);
+
+    const tagNames = tagNamesStr
+      .split(";")
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
     const tagIds = await getTagIdsByNames(tagNames);
-    
+
     await refreshChart(
       summaryContainer as HTMLElement,
       chartAllCanvas as HTMLCanvasElement,
@@ -96,7 +113,10 @@ async function updatePrefsUI(): Promise<void> {
     );
   });
 
-  const initialTagNames = savedTagNames.split(";").map(s => s.trim()).filter(s => s.length > 0);
+  const initialTagNames = savedTagNames
+    .split(";")
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
   const initialTagIds = await getTagIdsByNames(initialTagNames);
   await refreshChart(
     summaryContainer as HTMLElement,
@@ -111,7 +131,10 @@ async function updatePrefsUI(): Promise<void> {
     const statusEl = shareStatus as HTMLElement;
     statusEl.textContent = "";
     const tagNamesStr = inputEl.value.trim();
-    const tagNames = tagNamesStr.split(";").map(s => s.trim()).filter(s => s.length > 0);
+    const tagNames = tagNamesStr
+      .split(";")
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
     try {
       const tagIds = await getTagIdsByNames(tagNames);
       const statistics = await getStatistics(tagIds);
@@ -122,7 +145,9 @@ async function updatePrefsUI(): Promise<void> {
         statistics,
         footerNote as HTMLElement,
       );
-      statusEl.textContent = ok ? getString("ui-share-success") : getString("ui-share-failed");
+      statusEl.textContent = ok
+        ? getString("ui-share-success")
+        : getString("ui-share-failed");
     } catch {
       statusEl.textContent = getString("ui-share-failed");
     }
@@ -134,7 +159,7 @@ async function refreshChart(
   chartAllCanvas: HTMLCanvasElement,
   chartFocalCanvas: HTMLCanvasElement,
   tagIds: number[],
-  tagNamesStr: string
+  tagNamesStr: string,
 ): Promise<void> {
   let statistics: StatisticsData;
 
@@ -152,25 +177,31 @@ async function refreshChart(
   }
 
   if (!summaryContainer.ownerDocument) return;
-  
+
   summaryContainer.innerHTML = "";
 
   const allCard = summaryContainer.ownerDocument.createElement("div");
-  allCard.setAttribute("style", "flex: 1; padding: 10px; background: #f5f5f5; border-radius: 4px;");
+  allCard.setAttribute(
+    "style",
+    "flex: 1; padding: 10px; background: #f5f5f5; border-radius: 4px;",
+  );
   allCard.innerHTML = `
     <div style="font-size: 24px; font-weight: bold; color: #DD8452;">${statistics.totalCount.toLocaleString()}</div>
     <div style="font-size: 11px; color: #999;">${statistics.startDate} → ${statistics.endDate}</div>
   `;
   summaryContainer.appendChild(allCard);
-  
+
   const focalCard = summaryContainer.ownerDocument.createElement("div");
-  focalCard.setAttribute("style", "flex: 1; padding: 10px; background: #f5f5f5; border-radius: 4px;");
+  focalCard.setAttribute(
+    "style",
+    "flex: 1; padding: 10px; background: #f5f5f5; border-radius: 4px;",
+  );
   focalCard.innerHTML = `
     <div style="font-size: 24px; font-weight: bold; color: #4C72B0;">${statistics.focalCount.toLocaleString()}</div>
     <div style="font-size: 11px; color: #999;">${tagNamesStr ? `${getString("ui-tags-prefix")} ${tagNamesStr}` : getString("ui-no-tags")}</div>
   `;
   summaryContainer.appendChild(focalCard);
- 
+
   if (statistics.dailyData.length === 0) {
     const noDataDiv = summaryContainer.ownerDocument.createElement("div");
     noDataDiv.setAttribute("style", "color: #999; padding: 20px;");
@@ -182,17 +213,17 @@ async function refreshChart(
   const pubMarkers = await getPublicationMarkers();
   drawPanel(
     chartAllCanvas,
-    statistics.dailyData.map(d => d.addedCount),
-    statistics.dailyData.map(d => d.cumulativeCount),
-    statistics.dailyData.map(d => d.day),
+    statistics.dailyData.map((d) => d.addedCount),
+    statistics.dailyData.map((d) => d.cumulativeCount),
+    statistics.dailyData.map((d) => d.day),
     getString("ui-all-items"),
     pubMarkers,
   );
   drawPanel(
     chartFocalCanvas,
-    statistics.dailyData.map(d => d.focalAddedCount),
-    statistics.dailyData.map(d => d.focalCumulativeCount),
-    statistics.dailyData.map(d => d.day),
+    statistics.dailyData.map((d) => d.focalAddedCount),
+    statistics.dailyData.map((d) => d.focalCumulativeCount),
+    statistics.dailyData.map((d) => d.day),
     getString("ui-focal-items"),
     pubMarkers,
   );
@@ -206,16 +237,28 @@ async function exportShareImage(
   footerNote: HTMLElement,
 ): Promise<boolean> {
   const ratio = win.devicePixelRatio || 1;
-  const width = Math.max(chartAllCanvas.clientWidth, chartFocalCanvas.clientWidth, 520);
-  const panelHeight = Math.max(chartAllCanvas.clientHeight, chartFocalCanvas.clientHeight, 280);
+  const width = Math.max(
+    chartAllCanvas.clientWidth,
+    chartFocalCanvas.clientWidth,
+    520,
+  );
+  const panelHeight = Math.max(
+    chartAllCanvas.clientHeight,
+    chartFocalCanvas.clientHeight,
+    280,
+  );
   const headerHeight = 38;
   const gap = 16;
   const footerHeight = 96;
 
   const outCanvas = win.document.createElement("canvas");
   outCanvas.width = Math.floor(width * ratio);
-  outCanvas.height = Math.floor((headerHeight + panelHeight * 2 + gap + footerHeight) * ratio);
-  const ctx = outCanvas.getContext("2d");
+  outCanvas.height = Math.floor(
+    (headerHeight + panelHeight * 2 + gap + footerHeight) * ratio,
+  );
+  const ctx = outCanvas.getContext(
+    "2d",
+  ) as unknown as CanvasRenderingContext2D | null;
   if (!ctx) return false;
   ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
 
@@ -229,7 +272,11 @@ async function exportShareImage(
   ctx.fillText(getString("ui-main-title"), width / 2, 18);
   ctx.fillStyle = "#666";
   ctx.font = "11px sans-serif";
-  ctx.fillText(`${statistics.startDate} → ${statistics.endDate}`, width / 2, 34);
+  ctx.fillText(
+    `${statistics.startDate} → ${statistics.endDate}`,
+    width / 2,
+    34,
+  );
 
   // Watermark (top-right)
   const logo = await loadLogoImage(win);
@@ -245,7 +292,13 @@ async function exportShareImage(
 
   // Charts
   ctx.drawImage(chartAllCanvas, 0, headerHeight, width, panelHeight);
-  ctx.drawImage(chartFocalCanvas, 0, headerHeight + panelHeight + gap, width, panelHeight);
+  ctx.drawImage(
+    chartFocalCanvas,
+    0,
+    headerHeight + panelHeight + gap,
+    width,
+    panelHeight,
+  );
 
   // Footer note
   const footerText = footerNote.textContent?.trim() || "";
@@ -270,7 +323,8 @@ async function exportShareImage(
   const sepWidth = ctx.measureText(separator).width;
   const downloadWidth = ctx.measureText(downloadText).width;
   const logoWidth = logo ? 20 : 0;
-  const totalWidth = logoWidth + (logo ? 6 : 0) + nameWidth + sepWidth + downloadWidth;
+  const totalWidth =
+    logoWidth + (logo ? 6 : 0) + nameWidth + sepWidth + downloadWidth;
   let startX = (width - totalWidth) / 2;
   if (logo) {
     ctx.drawImage(logo, startX, footerBaseY - 12, 20, 20);
@@ -333,8 +387,10 @@ function drawWrappedText(
   }
 }
 
-
-async function copyImageToClipboard(win: Window, dataURL: string): Promise<boolean> {
+async function copyImageToClipboard(
+  win: Window,
+  dataURL: string,
+): Promise<boolean> {
   try {
     const response = await win.fetch(dataURL);
     const blob = await response.blob();
@@ -384,17 +440,15 @@ async function getPublicationMarkers(): Promise<PublicationMarkers> {
       AND items.itemID IN (SELECT itemID FROM publicationsItems)
     ORDER BY items.dateAdded ASC;
   `;
-  let publishDates = (await Zotero.DB.columnQueryAsync(
-    publishDateSql,
-    [libraryID],
-  )) as string[] | null;
+  let publishDates = (await Zotero.DB.columnQueryAsync(publishDateSql, [
+    libraryID,
+  ])) as string[] | null;
   if (!publishDates) publishDates = [];
   let addedDates: string[] = [];
   if (publishDates.length === 0) {
-    const added = (await Zotero.DB.columnQueryAsync(
-      addedDateSql,
-      [libraryID],
-    )) as string[] | null;
+    const added = (await Zotero.DB.columnQueryAsync(addedDateSql, [
+      libraryID,
+    ])) as string[] | null;
     addedDates = added ?? [];
   }
   const dayCounts = new Map<string, number>();
@@ -451,7 +505,9 @@ function drawPanel(
   title: string,
   pubMarkers: PublicationMarkers,
 ): void {
-  const ctx = canvas.getContext("2d");
+  const ctx = canvas.getContext(
+    "2d",
+  ) as unknown as CanvasRenderingContext2D | null;
   if (!ctx) return;
 
   const view = canvas.ownerDocument?.defaultView;

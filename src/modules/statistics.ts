@@ -14,7 +14,9 @@ export interface StatisticsData {
   endDate: string;
 }
 
-export async function getStatistics(tagIds: number[] = []): Promise<StatisticsData> {
+export async function getStatistics(
+  tagIds: number[] = [],
+): Promise<StatisticsData> {
   const userLibraryID = Zotero.Libraries.userLibraryID;
 
   try {
@@ -25,14 +27,15 @@ export async function getStatistics(tagIds: number[] = []): Promise<StatisticsDa
 
   const libraryID = userLibraryID;
   const placeholders = tagIds.map(() => "?").join(",");
-  const focalWithClause = tagIds.length > 0
-    ? `WITH focal AS (
+  const focalWithClause =
+    tagIds.length > 0
+      ? `WITH focal AS (
         SELECT DISTINCT itemID
         FROM itemTags
         WHERE tagID IN (${placeholders})
         AND itemID NOT IN (SELECT itemID FROM deletedItems)
       )`
-    : "";
+      : "";
 
   const dayExpr = "substr(i.dateAdded, 1, 10)";
   const sql = `
@@ -53,9 +56,7 @@ export async function getStatistics(tagIds: number[] = []): Promise<StatisticsDa
     ORDER BY day ASC;
   `;
 
-  const params = tagIds.length > 0
-    ? [...tagIds, libraryID]
-    : [libraryID];
+  const params = tagIds.length > 0 ? [...tagIds, libraryID] : [libraryID];
   let results: any[] = [];
   try {
     const baseWhere = `
@@ -79,8 +80,9 @@ export async function getStatistics(tagIds: number[] = []): Promise<StatisticsDa
       GROUP BY ${dayExpr}
       ORDER BY ${dayExpr} ASC;
     `;
-    const focalSql = tagIds.length > 0
-      ? `
+    const focalSql =
+      tagIds.length > 0
+        ? `
           SELECT COUNT(DISTINCT CASE WHEN itg.itemID IS NOT NULL THEN i.itemID END) AS focal_added_count
           FROM items i
           JOIN itemTypes it ON i.itemTypeID = it.itemTypeID
@@ -93,7 +95,7 @@ export async function getStatistics(tagIds: number[] = []): Promise<StatisticsDa
           GROUP BY ${dayExpr}
           ORDER BY ${dayExpr} ASC;
         `
-      : "";
+        : "";
 
     const dayParams = [libraryID];
     const days = (await Zotero.DB.columnQueryAsync(daySql, dayParams)) as
@@ -105,9 +107,10 @@ export async function getStatistics(tagIds: number[] = []): Promise<StatisticsDa
     let focal: number[] = [];
     if (tagIds.length > 0) {
       const focalParams = [...tagIds, libraryID];
-      const focalCol = (await Zotero.DB.columnQueryAsync(focalSql, focalParams)) as
-        | number[]
-        | null;
+      const focalCol = (await Zotero.DB.columnQueryAsync(
+        focalSql,
+        focalParams,
+      )) as number[] | null;
       focal = focalCol ?? [];
     } else if (days) {
       focal = days.map(() => 0);
@@ -148,7 +151,7 @@ export async function getStatistics(tagIds: number[] = []): Promise<StatisticsDa
   const endDay = normalized[normalized.length - 1].day;
 
   const dailyData: DailyData[] = [];
-  let cur = new Date(startDay);
+  const cur = new Date(startDay);
   const end = new Date(endDay);
   let cumulative = 0;
   let focalCumulative = 0;
