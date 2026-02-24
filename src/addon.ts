@@ -3,11 +3,26 @@ import { ColumnOptions, DialogHelper } from "zotero-plugin-toolkit";
 import hooks from "./hooks";
 import { createZToolkit } from "./utils/ztoolkit";
 
+interface StatisticsData {
+  dailyData: DailyData[];
+  totalCount: number;
+  focalCount: number;
+  startDate: string;
+  endDate: string;
+}
+
+interface DailyData {
+  day: string;
+  addedCount: number;
+  cumulativeCount: number;
+  focalAddedCount: number;
+  focalCumulativeCount: number;
+}
+
 class Addon {
   public data: {
     alive: boolean;
     config: typeof config;
-    // Env type, see build.js
     env: "development" | "production";
     initialized?: boolean;
     ztoolkit: ZToolkit;
@@ -20,10 +35,9 @@ class Addon {
       rows: Array<{ [dataKey: string]: string }>;
     };
     dialog?: DialogHelper;
+    statistics?: StatisticsData;
   };
-  // Lifecycle hooks
   public hooks: typeof hooks;
-  // APIs
   public api: object;
 
   constructor() {

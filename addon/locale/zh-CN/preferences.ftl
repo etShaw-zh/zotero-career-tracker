@@ -1,5 +1,10 @@
-pref-title = 插件模板设置示例
-pref-enable =
-    .label = 开启
-pref-input = 输入
+pref-title = 科研轨迹追踪
 pref-help = { $name } Build { $version } { $time }
+pref-focal-tags-label = 关注标签
+pref-tag-placeholder = 用分号分隔标签，例如：tag1; tag2; tag3
+pref-refresh-btn = 刷新
+pref-tag-help = 用分号分隔的标签将作为“关注条目”
+pref-chart-all-title = 全部条目
+pref-chart-focal-title = 关注条目
+pref-chart-footer-note = ALL 表示所有条目添加时间的分布，FOCAL 表示带关注标签条目的添加分布，通常代表你认为更有价值的论文。
+pref-share-btn = 点击分享

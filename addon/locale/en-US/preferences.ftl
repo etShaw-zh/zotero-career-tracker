@@ -1,5 +1,10 @@
-pref-title = Addon Template Example
-pref-enable =
-    .label = Enable
-pref-input = Input
+pref-title = Career Tracker
 pref-help = { $name } Build { $version } { $time }
+pref-focal-tags-label = Focal Tags
+pref-tag-placeholder = Enter tag names separated by semicolons, e.g. tag1; tag2; tag3
+pref-refresh-btn = Refresh
+pref-tag-help = Enter tag names separated by semicolons to track as Focal Items
+pref-chart-all-title = All items
+pref-chart-focal-title = Focal items
+pref-chart-footer-note = ALL shows the distribution of added times for all items. FOCAL shows the distribution of added times for tagged, high-value items you care about.
+pref-share-btn = Share image
